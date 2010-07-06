@@ -1,10 +1,10 @@
-dojo.provide("oembed");
+dojo.provide("Oembed");
 
 dojo.require("dojo.io.script");
 dojo.require("dijit._Widget");
 dojo.require("dijit._Templated");
 
-dojo.declare("oembed",
+dojo.declare("Oembed",
 	[dijit._Widget, dijit._Templated],
 	{
 	// summary:
