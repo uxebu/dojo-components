@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>popup</title>
+	</head>
+	<body>
+		<span rel="popup">Display popup</span>
+
+		<link rel="stylesheet" type="text/css" href="../resources/popup.css" />
+		<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.4.1/dijit/themes/tundra/tundra.css" />
+
+		<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.4/dojo/dojo.xd.js" djConfig="baseUrl: '../'" type="text/javascript"></script>
+		<script type="text/javascript">
+			// Make sure we can pull oembed from a local source.
+			dojo.registerModulePath("popup", "popup");
+
+			dojo.require("popup");
+
+			// Let the magic happen.
+			dojo.ready(function(){
+				dojo.query("[rel=popup]").onclick(function(node){
+					popup.show("Test content");
+				});
+			});
+		</script>
+	</body>
+</html>
