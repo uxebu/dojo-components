@@ -22,7 +22,9 @@ dojo.require("dojox.highlight");
 dojo.require("dojox.highlight.languages._www");
 dojo.require("dojox.html.format");
 
+// Other dependencies
 dojo.require("dojox.html._base");
+dojo.require("dijit.DialogUnderlay");
 
 dojo.declare("CodeGlass",
 	[dijit._Widget, dijit._Templated],
@@ -65,6 +67,108 @@ dojo.declare("CodeGlass",
 	//		Viewer type
 	//		Can be type, inline and basic
 	type: "dialog",
+
+	// anim:
+	//		Animation of dialog node
+	anim: "fade",
+
+	// anims:
+	//		Object of available animation functions
+	_anims: {
+		"default": {
+			show: function(e){
+				this.ce = dojo.coords(e.target, true);
+				this._position();
+
+				var v = this.viewer;
+				v._toggleView();
+
+				dojo.animateProperty({
+					node: v.domNode,
+					beforeBegin: dojo.hitch(this, function(){
+						dojo.removeClass(v.domNode, "displayNone");
+						dojo.query(".wrapper", v.domNode).style({
+							"visibility": "hidden"
+						});
+					}),
+					properties: {
+						width: { start: this.ce.w, end: this.width},
+						height: { start: this.ce.h, end: this.height},
+						top: { start: this.ce.y, end: this.top },
+						left: { start: this.ce.x, end: this.left }
+					},
+					duration: 300,
+					onEnd: dojo.hitch(this, function(){
+						dojo.style(v.loader, "opacity", "0");
+						dojo.query(".wrapper", v.domNode).style({
+							"visibility": "visible"
+						});
+						v._setupIframe();
+						this.isOpen = true;
+					})
+				}).play();
+			},
+			hide: function(e){
+				var v = this.viewer;
+				dojo.query(".wrapper", v.domNode)
+					.style("visibility", "hidden");
+
+				dojo.animateProperty({
+					node: v.domNode,
+					properties: {
+						width: this.ce.w,
+						height: this.ce.h,
+						top: this.ce.y,
+						left: this.ce.x
+					},
+					onEnd: dojo.hitch(this, function(){
+						dojo.addClass(v.domNode, "displayNone");
+						this.isOpen = false;
+					})
+				}).play();
+			}
+		},
+		"fade": {
+			show: function(e){
+				this.showUnderlay();
+
+				var v = this.viewer;
+				dojo.fadeIn({
+					node: v.domNode,
+					duration: 300,
+					beforeBegin: dojo.hitch(this, function(){
+						this._position();
+						v._toggleView();
+						dojo.removeClass(v.domNode, "displayNone");
+						dojo.style(v.domNode, "opacity", 0);
+					}),
+					onEnd: dojo.hitch(this, function(){
+						dojo.style(v.loader, "opacity", "0");
+						dojo.query(".wrapper", v.domNode).style({
+							"visibility": "visible"
+						});
+						v._setupIframe();
+						this.isOpen = true;
+					})
+				}).play();
+			},
+			hide: function(e){
+				var v = this.viewer;
+				dojo.fadeOut({
+					node: v.domNode,
+					duration: 300,
+					onEnd: dojo.hitch(this, function(){
+						this.hideUnderlay();
+
+						dojo.addClass(v.domNode, "displayNone");
+						this.isOpen = false;
+					})
+				}).play();
+			}
+		}
+	},
+
+	connections: [],
 
 	constructor: function(){
 		// summary:
@@ -137,6 +241,20 @@ dojo.declare("CodeGlass",
 		d.addOnLoad(dojo.hitch(this, function(){
 			this._initPlugins();
 			this._setupViewer();
+
+			this.connections.push(d.connect(window, "onscroll", this, "layout"));
+			this.connections.push(d.connect(window, "onresize", this, function(){
+				// IE gives spurious resize events and can actually get stuck
+				// in an infinite loop if we don't ignore them
+				var viewport = dijit.getViewport();
+				if(!this._oldViewport ||
+						viewport.h != this._oldViewport.h ||
+						viewport.w != this._oldViewport.w){
+					this.layout();
+					this._oldViewport = viewport;
+				}
+			}));
+			this.connections.push(d.connect(d.doc.documentElement, "onkeypress", this, "_onKey"));
 		}));
 	},
 
@@ -161,7 +279,7 @@ dojo.declare("CodeGlass",
 			this._preparePlugin(instance);
 		}, this);
 
-		dojo.subscribe("CodeGlass/plugin/change/" + this.id, this, function(p, base){
+		dojo.subscribe("codeglass/plugin/change/" + this.id, this, function(p, base){
 			this._refreshViewer();
 		});
 	},
@@ -262,61 +380,41 @@ dojo.declare("CodeGlass",
 			return;
 		}
 
-		this.ce = dojo.coords(e.target, true);
-		this._position();
-
-		var v = this.viewer;
-		v._toggleView();
-
 		dojo.publish("codeglass/open", [this]);
 
-		dojo.animateProperty({
-			node: v.domNode,
-			beforeBegin: dojo.hitch(this, function(){
-				dojo.removeClass(v.domNode, "displayNone");
-				dojo.query(".wrapper", v.domNode).style({
-					"visibility": "hidden"
-				});
-			}),
-			properties: {
-				width: { start: this.ce.w, end: this.width},
-				height: { start: this.ce.h, end: this.height},
-				top: { start: this.ce.y, end: this.top },
-				left: { start: this.ce.x, end: this.left }
-			},
-			duration: 300,
-			onEnd: dojo.hitch(this, function(){
-				dojo.style(v.loader, "opacity", "0");
-				dojo.query(".wrapper", v.domNode).style({
-					"visibility": "visible"
-				});
-				v._setupIframe();
-				this.isOpen = true;
-			})
-		}).play();
+		if (this._anims[this.anim]){
+			this._anims[this.anim].show.call(this, e);
+		}
 	},
 
 	hide: function(e){
 		// summary:
 		//		hide dialog
 
-		var v = this.viewer;
-		dojo.query(".wrapper", v.domNode)
-			.style("visibility", "hidden");
+		if (this._anims[this.anim]){
+			this._anims[this.anim].hide.call(this, e);
+		}
+	},
 
-		dojo.animateProperty({
-			node: v.domNode,
-			properties: {
-				width: this.ce.w,
-				height: this.ce.h,
-				top: this.ce.y,
-				left: this.ce.x
-			},
-			onEnd: dojo.hitch(this, function(){
-				dojo.addClass(v.domNode, "displayNone");
-				this.isOpen = false;
-			})
-		}).play();
+	showUnderlay: function(){
+		var underlay = dijit._underlay;
+		if(!underlay){
+			underlay = dijit._underlay = new dijit.DialogUnderlay({id: 'uxebuPopupUnderlay'});
+		}else{
+			underlay.attr({id: 'uxebuPopupUnderlay'});
+		}
+
+		if(!dijit._dialogStack){
+			dijit._dialogStack = [];
+		}
+		var zIndex = 948 + dijit._dialogStack.length*2;
+		d.style(dijit._underlay.domNode, 'zIndex', zIndex);
+		d.style(this.viewer.domNode, 'zIndex', zIndex + 1);
+		underlay.show();
+	},
+
+	hideUnderlay: function(){
+		dijit._underlay.hide();
 	},
 
 	_position: function(){
@@ -338,6 +436,15 @@ dojo.declare("CodeGlass",
 			top: this.top+"px",
 			left: this.left+"px"
 		});
+	},
+
+	layout: function(){
+		if(!dojo.hasClass(this.viewer.domNode, "displayNone")){
+			if(dijit._underlay){	// avoid race condition during show()
+				dijit._underlay.layout();
+			}
+			this._position();
+		}
 	},
 
 	parseNodes: function(node){
@@ -381,6 +488,13 @@ dojo.declare("CodeGlass",
 		dojo.destroy(frg);
 
 		return content;
+	},
+
+	_onKey: function(e){
+		if(!dojo.hasClass(this.viewer.domNode, "displayNone") && e.keyCode && e.keyCode == 27){
+			dojo.stopEvent(e);
+			this.hide(e);
+		}
 	}
 });
 

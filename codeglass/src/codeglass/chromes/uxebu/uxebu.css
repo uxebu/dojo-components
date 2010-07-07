@@ -25,6 +25,11 @@
 	top: -19px;
 }
 
+#uxebuPopupUnderlay .dijitDialogUnderlay {
+	background: url(underlay-bg.gif);
+	opacity: 1;
+}
+
 .CodeGlassVieweruxebu .header {
 	overflow: visible;
 }
