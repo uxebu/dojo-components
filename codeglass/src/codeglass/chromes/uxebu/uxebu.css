@@ -44,3 +44,15 @@
 .CodeGlassVieweruxebu .header .menuItem {
 	padding:12px 8px 5px 24px;
 }
+
+.codeGlassuxebu .show {
+	background: url(btn-example.png) no-repeat;
+	width: 136px;
+	padding-top: 19px;
+	height: 0px;
+	overflow: hidden;
+	cursor: pointer;
+
+	display:-moz-inline-box;
+	display: inline-block;
+}
