@@ -10,7 +10,7 @@
 		</style>
 		{% if csscode %}{{ csscode|safe }}{% endif %}
 	</head>
-	<body {% if classBody %}class="{{ classBody }}"{% endif %}>
+	<body {% if classBody %}class="{{ classBody }}"{% endif %} onload="notify();">
 		{% if htmlcode %}{{ htmlcode|safe }}{% endif %}
 	</body>
 
@@ -22,10 +22,10 @@
 		it is part of the CodeGlass and you should just remove it when you use the code
 	-->
 	<script type="text/javascript">
-		dojo.addOnLoad(function(){
+		notify = function(){
 			if (document.pub){
 				document.pub();
 			}
-		});
+		};
 	</script>
 </html>

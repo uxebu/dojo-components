@@ -50,10 +50,7 @@ dojo.declare("CodeGlass",
 
 	// plugins:
 	//		Plugins which get hooked into CodeGlass
-	plugins: [
-		  "dojo.version", "dojo.i18n", "dojo.extra",
-		  "dojo.themes", "dojo.a11y", "dojo.dir"
-	],
+	plugins: [],
 
 	// chrome:
 	//		Chrome to be used for CodeGlass viewer
@@ -335,6 +332,7 @@ dojo.declare("CodeGlass",
 		//	The actual CodeViewer will get instantiated
 		//	here. Toolbars and iframeVars get injected into the
 		//	object here as well.
+
 		var v = this.viewer = new CodeViewer({
 			id: this.id+"_Content",
 			content: this.content,
