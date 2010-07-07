@@ -34,6 +34,10 @@
 	overflow: visible;
 }
 
+.CodeGlassVieweruxebu .container {
+	padding: 0;
+}
+
 .CodeGlassVieweruxebu .container .info,
 .CodeGlassVieweruxebu .container pre {
 	-moz-border-radius: 0px;

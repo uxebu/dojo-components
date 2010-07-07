@@ -20,7 +20,7 @@ dojo.require("dojo.fx");
 // Code beautifying
 dojo.require("dojox.highlight");
 dojo.require("dojox.highlight.languages._www");
-dojo.require("dojox.html.format");
+dojo.require("codeglass.html-beautify");
 
 // Other dependencies
 dojo.require("dojox.html._base");
@@ -617,7 +617,7 @@ dojo.declare("CodeViewer",
 					frgTmpl = new dojox.dtl.Template(this.content[type][key]);
 					// we use the context for all rendered templates (user shouldn't see the replacements!)
 					context = new dojox.dtl.Context(t);
-					this[tk] = t[tk] = dojox.html.format.prettyPrint(frgTmpl.render(context), 4);
+					this[tk] = t[tk] = codeglass.style_html(frgTmpl.render(context), 4);
 				}else{
 					this[tk] = t[tk] = this.content[type][key];
 				}
@@ -625,7 +625,7 @@ dojo.declare("CodeViewer",
 		}
 		var template = new dojox.dtl.Template(this.iframeTemplate),
 			context = new dojox.dtl.Context(t);
-		this.renderedContent = dojox.html.format.prettyPrint(template.render(context), 4);
+		this.renderedContent = codeglass.style_html(template.render(context), 4);
 	},
 
 	_setupIframe: function(){
